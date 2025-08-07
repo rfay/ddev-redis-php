@@ -51,8 +51,8 @@ jobs:
           RUN_ID=$(curl -s --fail "https://api.github.com/repos/rfay/ddev/actions/runs?branch=20250806_rfay_php_addon&per_page=1" | jq -r '.workflow_runs[0].id')
           echo "Latest run ID: $RUN_ID"
           
-          # Get linux_amd64 artifact ID from the run
-          ARTIFACT_ID=$(curl -s --fail "https://api.github.com/repos/rfay/ddev/actions/runs/$RUN_ID/artifacts" | jq -r '.artifacts[] | select(.name=="linux_amd64") | .id')
+          # Get ddev-linux-amd64 artifact ID from the run
+          ARTIFACT_ID=$(curl -s --fail "https://api.github.com/repos/rfay/ddev/actions/runs/$RUN_ID/artifacts" | jq -r '.artifacts[] | select(.name=="ddev-linux-amd64") | .id')
           echo "Artifact ID: $ARTIFACT_ID"
           
           # Download and install PHP addon DDEV binary
