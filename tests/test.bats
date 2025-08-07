@@ -30,6 +30,9 @@ setup() {
   export TESTDIR=$(mktemp -d ~/tmp/${PROJNAME}.XXXXXX)
   export DDEV_NONINTERACTIVE=true
   export DDEV_NO_INSTRUMENTATION=true
+
+  # TODO: Remove these when maturing. These are only added in order
+  # to allow using the ddev installed in /usr/local/bin instead of the brew-installed on.
   brew uninstall -f ddev
   echo "# echo PATH=$PATH" >&3
   echo "# which -a ddev: $(which -a ddev)" >&3
