@@ -30,8 +30,9 @@ setup() {
   export TESTDIR=$(mktemp -d ~/tmp/${PROJNAME}.XXXXXX)
   export DDEV_NONINTERACTIVE=true
   export DDEV_NO_INSTRUMENTATION=true
+  brew uninstall -f ddev
   echo "# echo PATH=$PATH" >&3
-  echo "# which -a ddev" >&3
+  echo "# which -a ddev: $(which -a ddev)" >&3
   echo "# ddev version: $(ddev --version)" >&3
 
   ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1 || true
