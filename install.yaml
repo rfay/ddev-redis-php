@@ -125,34 +125,24 @@ post_install_actions:
     if (file_exists($redisConf) && 
         strpos(file_get_contents($redisConf), '#ddev-generated') !== false) {
         
-        $optimizedConfig = <<<'EOF'
-# #ddev-generated
-################################## INCLUDES ###################################
-
-# Network
-include /etc/redis/conf/network.conf
-
-# General
-include /etc/redis/conf/general.conf
-
-# Snapshots
-include /etc/redis/conf/snapshots.conf
-
-# Security
-include /etc/redis/conf/security.conf
-
-# Memory management
-include /etc/redis/conf/memory.conf
-
-# CPU management
-include /etc/redis/conf/io.conf
-
-# Append mode
-include /etc/redis/conf/append.conf
-
-# Advanced config
-include /etc/redis/conf/advanced.conf
-EOF;
+        $optimizedConfig = "# #ddev-generated\\n";
+        $optimizedConfig .= "################################## INCLUDES ###################################\\n\\n";
+        $optimizedConfig .= "# Network\\n";
+        $optimizedConfig .= "include /etc/redis/conf/network.conf\\n\\n";
+        $optimizedConfig .= "# General\\n";
+        $optimizedConfig .= "include /etc/redis/conf/general.conf\\n\\n";
+        $optimizedConfig .= "# Snapshots\\n";
+        $optimizedConfig .= "include /etc/redis/conf/snapshots.conf\\n\\n";
+        $optimizedConfig .= "# Security\\n";
+        $optimizedConfig .= "include /etc/redis/conf/security.conf\\n\\n";
+        $optimizedConfig .= "# Memory management\\n";
+        $optimizedConfig .= "include /etc/redis/conf/memory.conf\\n\\n";
+        $optimizedConfig .= "# CPU management\\n";
+        $optimizedConfig .= "include /etc/redis/conf/io.conf\\n\\n";
+        $optimizedConfig .= "# Append mode\\n";
+        $optimizedConfig .= "include /etc/redis/conf/append.conf\\n\\n";
+        $optimizedConfig .= "# Advanced config\\n";
+        $optimizedConfig .= "include /etc/redis/conf/advanced.conf\\n";
         
         file_put_contents($redisConf, $optimizedConfig);
         echo "PHP: Updated redis.conf with optimized configuration\n";
@@ -163,19 +153,17 @@ EOF;
     if (!file_exists($extraDockerFile) || 
         strpos(file_get_contents($extraDockerFile), '#ddev-generated') !== false) {
         
-        $extraConfig = <<<'EOF'
-#ddev-generated
-services:
-  redis:
-    deploy:
-      resources:
-        limits:
-          cpus: "2.5"
-          memory: "768M"
-        reservations:
-          cpus: "1.5"
-          memory: "512M"
-EOF;
+        $extraConfig = "#ddev-generated\\n";
+        $extraConfig .= "services:\\n";
+        $extraConfig .= "  redis:\\n";
+        $extraConfig .= "    deploy:\\n";
+        $extraConfig .= "      resources:\\n";
+        $extraConfig .= "        limits:\\n";
+        $extraConfig .= "          cpus: \\"2.5\\"\\n";
+        $extraConfig .= "          memory: \\"768M\\"\\n";
+        $extraConfig .= "        reservations:\\n";
+        $extraConfig .= "          cpus: \\"1.5\\"\\n";
+        $extraConfig .= "          memory: \\"512M\\"\\n";
         
         file_put_contents($extraDockerFile, $extraConfig);
         echo "PHP: Created docker-compose.redis_extra.yaml\n";
