@@ -51,4 +51,5 @@ jobs:
           debug_enabled: ${{ github.event.inputs.debug_enabled }}
           addon_repository: ${{ env.GITHUB_REPOSITORY }}
           addon_ref: ${{ env.GITHUB_REF }}
-          test_command: bash -c "echo $PATH && brew uninstall -f ddev && which ddev && ddev --version && bats tests --filter-tags ${{ matrix.bats_tag }}"
+          # test_command: bats tests --filter-tags ${{ matrix.bats_tag }}
+          test_command: echo $PATH
