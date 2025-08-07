@@ -43,6 +43,8 @@ jobs:
           sudo chmod +x /usr/local/bin/ddev
           echo "Installed DDEV version:"
           ddev --version
+          echo PATH=$PATH
+          echo GITHUB_PATH=${{ env.PATH }}
 
       - uses: ddev/github-action-add-on-test@v2
         with:
@@ -52,5 +54,3 @@ jobs:
           addon_repository: ${{ env.GITHUB_REPOSITORY }}
           addon_ref: ${{ env.GITHUB_REF }}
           test_command: bats tests --filter-tags ${{ matrix.bats_tag }}
-        env:
-          PATH: /usr/local/bin:${{ env.PATH }}
