@@ -43,20 +43,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # TODO: This build step is a temporary workaround to get the DDEV PR
+      # binary.
       - name: Install PHP addon DDEV binary
         run: |
           set -eu -o pipefail
           
           # Get latest successful workflow run with artifacts for PHP addon branch
           RUN_ID=""
-          for run_id in $(curl -s --fail "https://api.github.com/repos/rfay/ddev/actions/runs?branch=20250806_rfay_php_addon&per_page=5" | jq -r '.workflow_runs[] | select(.conclusion=="success") | .id'); do
+          WORKFLOW_RUNS=$(curl -s --fail "https://api.github.com/repos/rfay/ddev/actions/runs?branch=20250806_rfay_php_addon&per_page=5" || echo '{"workflow_runs":[]}')
+          echo "API Response: $WORKFLOW_RUNS"
+          
+          for run_id in $(echo "$WORKFLOW_RUNS" | jq -r '.workflow_runs[] | select(.conclusion=="success") | .id'); do
+            echo "Checking run $run_id for artifacts..."
             ARTIFACT_COUNT=$(curl -s --fail "https://api.github.com/repos/rfay/ddev/actions/runs/$run_id/artifacts" | jq '.total_count')
+            echo "Artifact count for run $run_id: $ARTIFACT_COUNT"
             if [ "$ARTIFACT_COUNT" -gt 0 ]; then
               RUN_ID=$run_id
               break
             fi
           done
-          echo "Latest run ID with artifacts: $RUN_ID"
+          
+          # Fallback to known working run if API fails
+          if [ -z "$RUN_ID" ]; then
+            echo "WARNING: Could not find run with artifacts via API, using fallback"
+            RUN_ID="16806923996"
+          fi
+          echo "Using run ID: $RUN_ID"
           
           # Get ddev-linux-amd64 artifact ID from the run
           ARTIFACT_ID=$(curl -s --fail "https://api.github.com/repos/rfay/ddev/actions/runs/$RUN_ID/artifacts" | jq -r '.artifacts[] | select(.name=="ddev-linux-amd64") | .id')
