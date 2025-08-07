@@ -1,9 +1,12 @@
-[![add-on registry](https://img.shields.io/badge/DDEV-Add--on_Registry-blue)](https://addons.ddev.com)
-[![tests](https://github.com/ddev/ddev-redis/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/ddev/ddev-redis/actions/workflows/tests.yml?query=branch%3Amain)
-[![last commit](https://img.shields.io/github/last-commit/ddev/ddev-redis)](https://github.com/ddev/ddev-redis/commits)
-[![release](https://img.shields.io/github/v/release/ddev/ddev-redis)](https://github.com/ddev/ddev-redis/releases/latest)
+**⚠️ TESTING ONLY - PHP TRANSLATION EXPERIMENT ⚠️**
 
-## DDEV Redis
+This is an experimental PHP-based translation of the original [ddev/ddev-redis](https://github.com/ddev/ddev-redis) addon, created to validate the PHP addon system capabilities. **This is NOT intended for production use.**
+
+For the official, production-ready Redis addon, use: `ddev add-on get ddev/ddev-redis`
+
+---
+
+## DDEV Redis (PHP Translation)
 
 > [!NOTE]
 > This add-on has absorbed functionality from `ddev/ddev-redis-7`, see [Advanced Customization](#advanced-customization).
