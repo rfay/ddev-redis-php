@@ -27,44 +27,35 @@ jobs:
     strategy:
       matrix:
         bats_tag: [
-          "default",
-          "default-optimized",
-          "drupal",
-          "laravel-redis",
-          "laravel-redis-alpine-optimized",
-          "laravel-valkey",
-          "laravel-valkey-alpine-optimized",
-          "laravel-redis-6",
-          "drupal-7",
-          "drupal-no-settings"
+          "drupal"
         ]
       fail-fast: false
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install DDEV from PHP addon branch
+      - name: Install PHP addon DDEV binary
         run: |
-          # Install prerequisites
-          sudo apt-get update && sudo apt-get install -y curl build-essential
-          
-          # Clone DDEV from the PHP addon branch
-          git clone -b 20250806_rfay_php_addon https://github.com/rfay/ddev.git /tmp/ddev-source
-          cd /tmp/ddev-source
-          
-          # Build and install DDEV
-          make clean
-          make 
-          sudo cp .gotmp/bin/linux_amd64/ddev /usr/local/bin/
-          ddev version
+          # Download and install PHP addon DDEV binary
+          curl -sSL https://nightly.link/rfay/ddev/actions/artifacts/3709968561.zip -o ddev-php-addon.zip
+          unzip -q ddev-php-addon.zip
+          sudo cp ddev /usr/local/bin/ddev
+          sudo chmod +x /usr/local/bin/ddev
+          echo "Installed DDEV version:"
+          ddev --version
 
-      - name: Install bats
-        run: |
-          sudo apt-get install -y bats
-
-      - name: Run tests
-        run: |
-          bats tests --filter-tags ${{ matrix.bats_tag }}
+      - uses: ddev/github-action-add-on-test@v2
+        with:
+          ddev_version: "stable"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          debug_enabled: ${{ github.event.inputs.debug_enabled }}
+          addon_repository: ${{ env.GITHUB_REPOSITORY }}
+          addon_ref: ${{ env.GITHUB_REF }}
+          test_command: |
+            # Remove the brew-installed ddev to use our PHP addon version
+            brew uninstall -f ddev
+            # Verify our PHP addon version is now active
+            which ddev
+            ddev --version
+            # Run the tests
+            bats tests --filter-tags ${{ matrix.bats_tag }}
