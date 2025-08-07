@@ -22,33 +22,59 @@ ddev_version_constraint: '>= v1.24.3'
 
 post_install_actions:
   - |
+    <?php
     #ddev-description:Install redis settings for Drupal 9+ if applicable
-    redis/scripts/setup-drupal-settings.php
+    include '/mnt/ddev_config/redis/scripts/setup-drupal-settings.php';
+    ?>
   - |
+    <?php
     #ddev-description:Using optimized config if --redis-optimized=true
-    redis/scripts/setup-redis-optimized-config.php
+    include '/mnt/ddev_config/redis/scripts/setup-redis-optimized-config.php';
+    ?>
   - |
+    <?php
     #ddev-description:Remove redis/scripts if there are no files
-    rmdir redis/scripts 2>/dev/null || true
+    $scriptsDir = '/mnt/ddev_config/redis/scripts';
+    if (is_dir($scriptsDir)) {
+        $files = array_diff(scandir($scriptsDir), ['.', '..']);
+        if (empty($files)) {
+            rmdir($scriptsDir);
+        }
+    }
+    ?>
   - |
+    <?php
     #ddev-description:Remove old `redis` command from `ddev-redis-7`
-    if grep "#ddev-generated" $DDEV_APPROOT/.ddev/commands/redis/redis > /dev/null 2>&1; then
-      rm -f "$DDEV_APPROOT/.ddev/commands/redis/redis"
-    fi
+    $oldCommand = '/var/www/html/.ddev/commands/redis/redis';
+    if (file_exists($oldCommand) && 
+        strpos(file_get_contents($oldCommand), '#ddev-generated') !== false) {
+        unlink($oldCommand);
+    }
+    ?>
 
 removal_actions:
   - |
+    <?php
     #ddev-description:Remove redis settings if applicable
-    files=(
-      "${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.ddev.redis.php"
-      "${DDEV_APPROOT}/.ddev/docker-compose.redis_extra.yaml"
-    )
-    for file in "${files[@]}"; do
-      if [ -f "$file" ]; then
-        if grep -q '#ddev-generated' "$file"; then
-          rm -f "$file"
-        else
-          echo "Unwilling to remove '$file' because it does not have #ddev-generated in it; you can manually delete it if it is safe to delete."
-        fi
-      fi
-    done
+    
+    // Read DDEV configuration to get docroot
+    $config = yaml_parse_file('/mnt/ddev_config/config.yaml');
+    $docroot = $config['docroot'] ?? 'web';
+    
+    // Files to potentially remove
+    $filesToCheck = [
+        "/var/www/html/{$docroot}/sites/default/settings.ddev.redis.php",
+        "/var/www/html/.ddev/docker-compose.redis_extra.yaml"
+    ];
+    
+    foreach ($filesToCheck as $file) {
+        if (file_exists($file)) {
+            $content = file_get_contents($file);
+            if (strpos($content, '#ddev-generated') !== false) {
+                unlink($file);
+            } else {
+                echo "Unwilling to remove '$file' because it does not have #ddev-generated in it; you can manually delete it if it is safe to delete.\n";
+            }
+        }
+    }
+    ?>
