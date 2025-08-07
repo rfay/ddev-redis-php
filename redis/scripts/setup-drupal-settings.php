@@ -26,8 +26,7 @@ if (!str_starts_with($projectType, 'drupal') ||
 }
 
 // Check if settings management is disabled
-$configYaml = shell_exec('ddev debug configyaml 2>/dev/null');
-if ($configYaml && strpos($configYaml, 'disable_settings_management: true') !== false) {
+if (isset($config['disable_settings_management']) && $config['disable_settings_management'] === true) {
     exit(0);
 }
 
