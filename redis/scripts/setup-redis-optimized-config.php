@@ -8,7 +8,7 @@ $isOptimized = false;
 
 if (file_exists($envFile)) {
     $envContent = file_get_contents($envFile);
-    $isOptimized = strpos($envContent, 'REDIS_OPTIMIZED=true') !== false;
+    $isOptimized = strpos($envContent, 'REDIS_OPTIMIZED="true"') !== false;
 }
 
 $scriptFile = "/var/www/html/.ddev/redis/scripts/setup-redis-optimized-config.sh";
