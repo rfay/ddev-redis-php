@@ -26,7 +26,6 @@ jobs:
   tests:
     strategy:
       matrix:
-        ddev_version: [stable, HEAD]
         bats_tag: [
           "default",
           "default-optimized",
@@ -44,11 +43,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: ddev/github-action-add-on-test@v2
-        with:
-          ddev_version: ${{ matrix.ddev_version }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          debug_enabled: ${{ github.event.inputs.debug_enabled }}
-          addon_repository: ${{ env.GITHUB_REPOSITORY }}
-          addon_ref: ${{ env.GITHUB_REF }}
-          test_command: bats tests --filter-tags ${{ matrix.bats_tag }}
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install DDEV from PHP addon branch
+        run: |
+          # Install prerequisites
+          sudo apt-get update && sudo apt-get install -y curl build-essential
+          
+          # Clone DDEV from the PHP addon branch
+          git clone -b 20250806_rfay_php_addon https://github.com/rfay/ddev.git /tmp/ddev-source
+          cd /tmp/ddev-source
+          
+          # Build and install DDEV
+          make clean
+          make 
+          sudo cp .gotmp/bin/linux_amd64/ddev /usr/local/bin/
+          ddev version
+
+      - name: Install bats
+        run: |
+          sudo apt-get install -y bats
+
+      - name: Run tests
+        run: |
+          bats tests --filter-tags ${{ matrix.bats_tag }}
