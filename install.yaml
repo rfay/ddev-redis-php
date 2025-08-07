@@ -3,8 +3,8 @@ name: redis
 project_files:
   - docker-compose.redis.yaml
   - redis/scripts/settings.ddev.redis.php
-  - redis/scripts/setup-drupal-settings.sh
-  - redis/scripts/setup-redis-optimized-config.sh
+  - redis/scripts/setup-drupal-settings.php
+  - redis/scripts/setup-redis-optimized-config.php
   - redis/redis.conf
   - redis/advanced.conf
   - redis/append.conf
@@ -22,222 +22,33 @@ ddev_version_constraint: '>= v1.24.3'
 
 post_install_actions:
   - |
-    <?php
     #ddev-description:Install redis settings for Drupal 9+ if applicable
-    
-    // Read DDEV configuration to get project type
-    $config = yaml_parse_file('/mnt/ddev_config/config.yaml');
-    $projectType = $config['type'] ?? '';
-    
-    // Skip if not Drupal 8+ project
-    if (!str_starts_with($projectType, 'drupal') || 
-        in_array($projectType, ['drupal6', 'drupal7'])) {
-        
-        // Remove files if not applicable
-        $filesToRemove = [
-            '/mnt/ddev_config/redis/scripts/settings.ddev.redis.php',
-            '/mnt/ddev_config/redis/scripts/setup-drupal-settings.sh'
-        ];
-        
-        foreach ($filesToRemove as $file) {
-            if (file_exists($file) && 
-                strpos(file_get_contents($file), '#ddev-generated') !== false) {
-                echo "PHP: Removing $file as not applicable\n";
-                unlink($file);
-            }
-        }
-        exit(0);
-    }
-    
-    // Check if settings management is disabled
-    $configYaml = shell_exec('ddev debug configyaml 2>/dev/null');
-    if ($configYaml && strpos($configYaml, 'disable_settings_management: true') !== false) {
-        exit(0);
-    }
-    
-    // Copy settings file to Drupal sites/default
-    $sourceFile = '/mnt/ddev_config/redis/scripts/settings.ddev.redis.php';
-    $targetDir = '/var/www/html/' . ($config['docroot'] ?? 'web') . '/sites/default';
-    $targetFile = $targetDir . '/settings.ddev.redis.php';
-    
-    if (!is_dir($targetDir)) {
-        mkdir($targetDir, 0755, true);
-    }
-    
-    copy($sourceFile, $targetFile);
-    echo "PHP: Copied Redis settings to $targetFile\n";
-    
-    // Update settings.php to include Redis settings
-    $settingsFile = $targetDir . '/settings.php';
-    echo "PHP: Settings file name: $settingsFile\n";
-    
-    if (file_exists($settingsFile)) {
-        $settingsContent = file_get_contents($settingsFile);
-        
-        if (strpos($settingsContent, 'settings.ddev.redis.php') === false) {
-            $redisInclude = "\n// Include settings required for Redis cache.\n";
-            $redisInclude .= "if (getenv('IS_DDEV_PROJECT') == 'true' && file_exists(__DIR__ . '/settings.ddev.redis.php')) {\n";
-            $redisInclude .= "  include __DIR__ . '/settings.ddev.redis.php';\n";
-            $redisInclude .= "}\n";
-            
-            file_put_contents($settingsFile, $redisInclude, FILE_APPEND);
-            echo "PHP: Added Redis settings include to settings.php\n";
-        }
-    }
-    ?>
+    redis/scripts/setup-drupal-settings.php
   - |
-    <?php
     #ddev-description:Using optimized config if --redis-optimized=true
-    
-    // Check if redis-optimized flag is set
-    $optimizedFlag = shell_exec('ddev dotenv get .ddev/.env.redis --redis-optimized 2>/dev/null');
-    $isOptimized = trim($optimizedFlag) === 'true';
-    
-    if (!$isOptimized) {
-        // Remove optimized config files
-        $configFiles = ['advanced', 'append', 'general', 'io', 'memory', 'network', 'security', 'snapshots'];
-        foreach ($configFiles as $file) {
-            $filePath = "/mnt/ddev_config/redis/{$file}.conf";
-            if (file_exists($filePath) && 
-                strpos(file_get_contents($filePath), '#ddev-generated') !== false) {
-                unlink($filePath);
-            }
-        }
-        
-        // Remove extra docker file and script
-        $extraFiles = [
-            '/var/www/html/.ddev/docker-compose.redis_extra.yaml',
-            '/var/www/html/.ddev/redis/scripts/setup-redis-optimized-config.sh'
-        ];
-        
-        foreach ($extraFiles as $file) {
-            if (file_exists($file) && 
-                strpos(file_get_contents($file), '#ddev-generated') !== false) {
-                echo "PHP: Removing $file\n";
-                unlink($file);
-            }
-        }
-        exit(0);
-    }
-    
-    // Generate optimized redis.conf
-    $redisConf = '/mnt/ddev_config/redis/redis.conf';
-    if (file_exists($redisConf) && 
-        strpos(file_get_contents($redisConf), '#ddev-generated') !== false) {
-        
-        $optimizedConfig = "# #ddev-generated\\n";
-        $optimizedConfig .= "################################## INCLUDES ###################################\\n\\n";
-        $optimizedConfig .= "# Network\\n";
-        $optimizedConfig .= "include /etc/redis/conf/network.conf\\n\\n";
-        $optimizedConfig .= "# General\\n";
-        $optimizedConfig .= "include /etc/redis/conf/general.conf\\n\\n";
-        $optimizedConfig .= "# Snapshots\\n";
-        $optimizedConfig .= "include /etc/redis/conf/snapshots.conf\\n\\n";
-        $optimizedConfig .= "# Security\\n";
-        $optimizedConfig .= "include /etc/redis/conf/security.conf\\n\\n";
-        $optimizedConfig .= "# Memory management\\n";
-        $optimizedConfig .= "include /etc/redis/conf/memory.conf\\n\\n";
-        $optimizedConfig .= "# CPU management\\n";
-        $optimizedConfig .= "include /etc/redis/conf/io.conf\\n\\n";
-        $optimizedConfig .= "# Append mode\\n";
-        $optimizedConfig .= "include /etc/redis/conf/append.conf\\n\\n";
-        $optimizedConfig .= "# Advanced config\\n";
-        $optimizedConfig .= "include /etc/redis/conf/advanced.conf\\n";
-        
-        file_put_contents($redisConf, $optimizedConfig);
-        echo "PHP: Updated redis.conf with optimized configuration\n";
-    }
-    
-    // Generate docker-compose.redis_extra.yaml
-    $extraDockerFile = '/var/www/html/.ddev/docker-compose.redis_extra.yaml';
-    if (!file_exists($extraDockerFile) || 
-        strpos(file_get_contents($extraDockerFile), '#ddev-generated') !== false) {
-        
-        $extraConfig = "#ddev-generated\\n";
-        $extraConfig .= "services:\\n";
-        $extraConfig .= "  redis:\\n";
-        $extraConfig .= "    deploy:\\n";
-        $extraConfig .= "      resources:\\n";
-        $extraConfig .= "        limits:\\n";
-        $extraConfig .= "          cpus: \\"2.5\\"\\n";
-        $extraConfig .= "          memory: \\"768M\\"\\n";
-        $extraConfig .= "        reservations:\\n";
-        $extraConfig .= "          cpus: \\"1.5\\"\\n";
-        $extraConfig .= "          memory: \\"512M\\"\\n";
-        
-        file_put_contents($extraDockerFile, $extraConfig);
-        echo "PHP: Created docker-compose.redis_extra.yaml\n";
-    }
-    
-    // Update snapshots.conf with site name
-    $config = yaml_parse_file('/mnt/ddev_config/config.yaml');
-    $siteName = $config['name'] ?? 'default';
-    
-    $snapshotsFile = '/mnt/ddev_config/redis/snapshots.conf';
-    if (file_exists($snapshotsFile)) {
-        $content = file_get_contents($snapshotsFile);
-        $content = str_replace('REPLACE_ME', $siteName, $content);
-        file_put_contents($snapshotsFile, $content);
-        echo "PHP: Updated snapshots.conf with site name: $siteName\n";
-    }
-    
-    // Remove the setup script itself
-    $scriptFile = '/var/www/html/.ddev/redis/scripts/setup-redis-optimized-config.sh';
-    if (file_exists($scriptFile) && 
-        strpos(file_get_contents($scriptFile), '#ddev-generated') !== false) {
-        echo "PHP: Removing $scriptFile\n";
-        unlink($scriptFile);
-    }
-    ?>
+    redis/scripts/setup-redis-optimized-config.php
   - |
-    <?php
     #ddev-description:Remove redis/scripts if there are no files
-    
-    $scriptsDir = '/mnt/ddev_config/redis/scripts';
-    if (is_dir($scriptsDir)) {
-        $files = array_diff(scandir($scriptsDir), ['.', '..']);
-        if (empty($files)) {
-            rmdir($scriptsDir);
-            echo "PHP: Removed empty scripts directory\n";
-        }
-    }
-    ?>
+    rmdir redis/scripts 2>/dev/null || true
   - |
-    <?php
     #ddev-description:Remove old `redis` command from `ddev-redis-7`
-    
-    $oldCommand = '/var/www/html/.ddev/commands/redis/redis';
-    if (file_exists($oldCommand) && 
-        strpos(file_get_contents($oldCommand), '#ddev-generated') !== false) {
-        unlink($oldCommand);
-        echo "PHP: Removed old redis command\n";
-    }
-    ?>
+    if grep "#ddev-generated" $DDEV_APPROOT/.ddev/commands/redis/redis > /dev/null 2>&1; then
+      rm -f "$DDEV_APPROOT/.ddev/commands/redis/redis"
+    fi
 
 removal_actions:
   - |
-    <?php
     #ddev-description:Remove redis settings if applicable
-    
-    // Read DDEV configuration to get docroot
-    $config = yaml_parse_file('/mnt/ddev_config/config.yaml');
-    $docroot = $config['docroot'] ?? 'web';
-    
-    // Files to potentially remove
-    $filesToCheck = [
-        "/var/www/html/{$docroot}/sites/default/settings.ddev.redis.php",
-        "/var/www/html/.ddev/docker-compose.redis_extra.yaml"
-    ];
-    
-    foreach ($filesToCheck as $file) {
-        if (file_exists($file)) {
-            $content = file_get_contents($file);
-            if (strpos($content, '#ddev-generated') !== false) {
-                unlink($file);
-                echo "PHP: Removed $file\n";
-            } else {
-                echo "Unwilling to remove '$file' because it does not have #ddev-generated in it; you can manually delete it if it is safe to delete.\n";
-            }
-        }
-    }
-    ?>
+    files=(
+      "${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.ddev.redis.php"
+      "${DDEV_APPROOT}/.ddev/docker-compose.redis_extra.yaml"
+    )
+    for file in "${files[@]}"; do
+      if [ -f "$file" ]; then
+        if grep -q '#ddev-generated' "$file"; then
+          rm -f "$file"
+        else
+          echo "Unwilling to remove '$file' because it does not have #ddev-generated in it; you can manually delete it if it is safe to delete."
+        fi
+      fi
+    done
