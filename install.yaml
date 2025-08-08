@@ -24,11 +24,11 @@ post_install_actions:
   - |
     <?php
     #ddev-description:Install redis settings for Drupal 9+ if applicable
-    include 'redis/scripts/setup-drupal-settings.php';
+    require 'redis/scripts/setup-drupal-settings.php';
   - |
     <?php
     #ddev-description:Using optimized config if --redis-optimized=true
-    include 'redis/scripts/setup-redis-optimized-config.php';
+    require 'redis/scripts/setup-redis-optimized-config.php';
   - |
     <?php
     #ddev-description:Remove redis/scripts if there are no files

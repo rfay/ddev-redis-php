@@ -1,3 +1,4 @@
+<?php
 #ddev-generated
 
 // ✅ Use environment variables instead of manual config parsing

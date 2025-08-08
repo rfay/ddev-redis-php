@@ -1,3 +1,4 @@
+<?php
 #ddev-generated
 
 // ✅ Use environment variables for paths
@@ -13,7 +14,7 @@ $isOptimized = false;
 
 if (file_exists($envFile)) {
     $envContent = file_get_contents($envFile);
-    $isOptimized = strpos($envContent, 'redis-optimized=true') !== false;
+    $isOptimized = strpos($envContent, 'REDIS_OPTIMIZED=true') !== false;
 }
 
 if (!$isOptimized) {
