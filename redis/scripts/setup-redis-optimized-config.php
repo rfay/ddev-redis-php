@@ -5,10 +5,10 @@
 $appRoot = $_ENV['DDEV_APPROOT'];
 $siteName = $_ENV['DDEV_SITENAME'];
 
+
 $scriptFile = "{$appRoot}/.ddev/redis/scripts/setup-redis-optimized-config.php";
 $extraDockerFile = "{$appRoot}/.ddev/docker-compose.redis_extra.yaml";
 
-// ✅ Direct file access instead of ddev dotenv command
 $envFile = '.env.redis';
 $isOptimized = false;
 
@@ -97,10 +97,10 @@ if (!file_exists($extraDockerFile) || strpos(file_get_contents($extraDockerFile)
     file_put_contents($extraDockerFile, $yamlContent);
 }
 
+// Use absolute path for snapshots file
 // Update snapshots.conf with project-specific dump filename
 echo "Change the redis dump filename if applicable\n";
 $snapshotsFile = 'redis/snapshots.conf';
-if (file_exists($snapshotsFile)) {
     $content = file_get_contents($snapshotsFile);
     $content = str_replace('REPLACE_ME', $siteName, $content);
     file_put_contents($snapshotsFile, $content);

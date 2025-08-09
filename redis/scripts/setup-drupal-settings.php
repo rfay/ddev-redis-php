@@ -20,23 +20,23 @@ if (strpos($projectType, 'drupal') !== 0 || preg_match('/^drupal[67]$/', $projec
             unlink($file);
         }
     }
-    exit(0);
+    return;
 }
 
 // ✅ Use processed configuration instead of ddev debug configyaml
 $config = yaml_parse_file('.ddev-config/project_config.yaml');
 if (isset($config['disable_settings_management']) && $config['disable_settings_management'] === true) {
-    exit(0);
+    return;
 }
 
 // Copy the settings file to the appropriate Drupal location
-$sourceFile = 'redis/scripts/settings.ddev.redis.php';
+$sourceFile = __DIR__ . '/settings.ddev.redis.php';
 $targetDir = "{$appRoot}/{$docroot}/sites/default";
 $targetFile = "{$targetDir}/settings.ddev.redis.php";
 
 if (!copy($sourceFile, $targetFile)) {
     echo "Error: Failed to copy {$sourceFile} to {$targetFile}\n";
-    exit(1);
+    return 1;
 }
 
 // Add include to settings.php if not already present
@@ -56,3 +56,4 @@ if (getenv('IS_DDEV_PROJECT') == 'true' && file_exists(__DIR__ . '/settings.ddev
         file_put_contents($settingsFile, $includeCode, FILE_APPEND);
     }
 }
+?>
