@@ -52,7 +52,7 @@ jobs:
           # Get latest successful workflow run with artifacts for PHP addon branch
           RUN_ID=""
           WORKFLOW_RUNS=$(curl -s --fail "https://api.github.com/repos/rfay/ddev/actions/runs?branch=20250806_rfay_php_addon&per_page=5" || echo '{"workflow_runs":[]}')
-          echo "API Response: $WORKFLOW_RUNS"
+          # echo "API Response: $WORKFLOW_RUNS"
           
           for run_id in $(echo "$WORKFLOW_RUNS" | jq -r '.workflow_runs[] | select(.conclusion=="success") | .id'); do
             echo "Checking run $run_id for artifacts..."
