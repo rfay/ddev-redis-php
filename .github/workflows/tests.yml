@@ -30,13 +30,13 @@ jobs:
           "default",
           "default-optimized",
           "drupal",
-#          "laravel-redis",
-#          "laravel-redis-alpine-optimized",
-#          "laravel-valkey",
-#          "laravel-valkey-alpine-optimized",
-#          "laravel-redis-6",
-#          "drupal-7",
-#          "drupal-no-settings"
+          "laravel-redis",
+          "laravel-redis-alpine-optimized",
+          "laravel-valkey",
+          "laravel-valkey-alpine-optimized",
+          "laravel-redis-6",
+          "drupal-7",
+          "drupal-no-settings"
         ]
       fail-fast: false
 
