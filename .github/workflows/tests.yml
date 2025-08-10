@@ -90,6 +90,7 @@ jobs:
           echo "Installed DDEV version:"
           ddev --version
 
+      # Optionally keep the action for setup, but do NOT run tests in it.
       - uses: ddev/github-action-add-on-test@v2
         with:
           ddev_version: "stable"
@@ -97,6 +98,22 @@ jobs:
           debug_enabled: ${{ github.event.inputs.debug_enabled }}
           addon_repository: ${{ env.GITHUB_REPOSITORY }}
           addon_ref: ${{ env.GITHUB_REF }}
-          test_command: bats tests --filter-tags ${{ matrix.bats_tag }}
+          test_command: true
         env:
-          PATH: /usr/local/bin:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+          PATH: /usr/local/bin:/home/linuxbrew/.linuxbrew/bin:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+      # Overwrite linuxbrew DDEV binary with PHP addon version
+      - name: Unlink ddev from homebrew
+        run: |
+          brew unlink ddev
+          hash -r
+          ddev --version
+
+      # Run bats tests with correct DDEV version
+      - name: Run bats tests with correct DDEV version
+        run: |
+          which -a ddev
+          ddev --version
+          bats tests --filter-tags ${{ matrix.bats_tag }}
+        env:
+          PATH: /usr/local/bin:/home/linuxbrew/.linuxbrew/bin:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
