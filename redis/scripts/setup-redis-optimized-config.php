@@ -13,7 +13,7 @@ $isOptimized = false;
 
 if (file_exists($envFile)) {
     $envContent = file_get_contents($envFile);
-    $isOptimized = strpos($envContent, 'REDIS_OPTIMIZED=true') !== false;
+    $isOptimized = strpos($envContent, 'REDIS_OPTIMIZED=true') !== false || strpos($envContent, 'REDIS_OPTIMIZED="true"') !== false;
 }
 
 if (!$isOptimized) {
@@ -71,29 +71,20 @@ include /etc/redis/conf/advanced.conf
     file_put_contents($redisConfFile, $redisConfContent);
 }
 
-//TODO: Shouldn't this be a static file instead of ugly generation?
-// ✅ Generate docker-compose extra file using yaml_emit instead of heredoc
+// ✅ Generate docker-compose extra file as plain text (matches bash version)
 if (!file_exists($extraComposeFile) || strpos(file_get_contents($extraComposeFile), '#ddev-generated') !== false) {
-    $dockerConfig = [
-        'services' => [
-            'redis' => [
-                'deploy' => [
-                    'resources' => [
-                        'limits' => [
-                            'cpus' => '2.5',
-                            'memory' => '768M'
-                        ],
-                        'reservations' => [
-                            'cpus' => '1.5',
-                            'memory' => '512M'
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    ];
-
-    $yamlContent = "#ddev-generated\n" . yaml_emit($dockerConfig);
+    $yamlContent = '#ddev-generated
+services:
+  redis:
+    deploy:
+      resources:
+        limits:
+          cpus: "2.5"
+          memory: "768M"
+        reservations:
+          cpus: "1.5"
+          memory: "512M"
+';
     file_put_contents($extraComposeFile, $yamlContent);
 }
 
