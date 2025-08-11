@@ -1,5 +1,5 @@
+#ddev-generated
 name: redis
-image: ddev/ddev-webserver:20250806_rfay_php_addon
 
 project_files:
   - docker-compose.redis.yaml
